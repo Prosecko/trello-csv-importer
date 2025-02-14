@@ -136,6 +136,47 @@
           }
         });
       });
+      
+      function displayPreview(dataArray) {
+        let previewDiv = document.getElementById('preview');
+        previewDiv.innerHTML = '<h3>Vorschau der zu erstellenden Karten:</h3>';
+        let previewList = '<ul>';
+        let currentCard = null;
+        let cardChecklists = {};
+
+        dataArray.forEach(item => {
+          if (item['Card Name']) {
+            currentCard = item['Card Name'];
+            cardChecklists[currentCard] = {
+              description: item['Card Description'] || 'Keine Beschreibung',
+              members: item['Members'] || 'Keine Mitglieder',
+              labels: item['Labels'] || 'Keine Labels',
+              checklist: item['Checklist'] || 'Keine Checkliste',
+              checklistItems: []
+            };
+          } else if (currentCard && item['Checklist item']) {
+            cardChecklists[currentCard].checklistItems.push(item['Checklist item']);
+          }
+        });
+
+        for (const [cardName, cardData] of Object.entries(cardChecklists)) {
+          previewList += `<li>
+            <strong>${cardName}</strong> - ${cardData.description}
+            <br><strong>Mitglieder:</strong> ${cardData.members}
+            <br><strong>Labels:</strong> ${cardData.labels}
+            <br><strong>Checkliste:</strong> ${cardData.checklist}
+            <ul>`;
+          
+          cardData.checklistItems.forEach(item => {
+            previewList += `<li>${item}</li>`;
+          });
+          
+          previewList += `</ul></li><br>`;
+        }
+
+        previewList += '</ul>';
+        previewDiv.innerHTML += previewList;
+      }
     </script>
   </body>
 </html>
