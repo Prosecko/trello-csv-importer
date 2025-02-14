@@ -93,24 +93,30 @@
                     height: 400
                   });
                 }
-              },
-              {
-                icon: "https://cdn-icons-png.flaticon.com/512/747/747376.png",
-                text: "Test Board Button",
-                callback: function (t) {
-                  return t.lists("id").then(function(lists) {
-                    if (lists.length > 0) {
-                      return t.card({
-                        name: "Testkarte",
-                        desc: "Dies ist eine Testkarte, um die API zu testen.",
-                        idList: lists[0].id
-                      });
-                    }
-                  });
-                }
               }
             ];
           }
+        });
+
+        document.getElementById('testBoardBtn').addEventListener('click', function() {
+          t.lists("id").then(function(lists) {
+            console.log("Fetched Lists:", lists);
+            if (lists && lists.length > 0) {
+              return t.card({
+                name: "Testkarte",
+                desc: "Dies ist eine Testkarte, um die API zu testen.",
+                idList: lists[0].id
+              }).then(function(card) {
+                console.log("Karte erfolgreich erstellt:", card);
+              }).catch(function(error) {
+                console.error("Fehler beim Erstellen der Karte:", error);
+              });
+            } else {
+              console.warn("Keine Listen gefunden!");
+            }
+          }).catch(function(error) {
+            console.error("Fehler beim Abrufen der Listen:", error);
+          });
         });
 
         document.getElementById('csvInput').addEventListener('change', function(event) {
