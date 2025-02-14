@@ -69,46 +69,49 @@
       var t = window.TrelloPowerUp ? window.TrelloPowerUp.iframe() : null;
       
       function isRunningInTrello() {
-        try {
-          return window.location !== window.parent.location;
-        } catch (e) {
-          return false;
-        }
+        return typeof window.TrelloPowerUp !== "undefined";
       }
 
       if (!isRunningInTrello()) {
+        console.warn("Dieses Power-Up muss innerhalb von Trello verwendet werden.");
         document.body.innerHTML = `<div style="text-align: center; padding: 50px;">
           <h2>Hinweis</h2>
           <p>Dieses Power-Up muss innerhalb von Trello verwendet werden.</p>
         </div>`;
-        throw new Error("Dieses Power-Up muss innerhalb von Trello verwendet werden.");
+        throw new Error("Power-Up nicht in Trello geladen.");
       }
       
       if (t) {
         t.initialize({
           "board-buttons": function (t, opts) {
+            console.log("Board button initialized");
             return [
               {
                 icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
                 text: "CSV Import",
                 callback: function (t) {
+                  console.log("Board button clicked");
                   document.getElementById('csvInput').click();
                 }
               }
             ];
           },
           "card-buttons": function (t, opts) {
+            console.log("Card button initialized");
             return [
               {
                 icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
                 text: "CSV Import",
                 callback: function (t) {
+                  console.log("Card button clicked");
                   document.getElementById('csvInput').click();
                 }
               }
             ];
           }
         });
+      } else {
+        console.error("Trello API konnte nicht geladen werden. Ist das Power-Up korrekt registriert?");
       }
 
       document.getElementById('csvInput').addEventListener('change', function(event) {
