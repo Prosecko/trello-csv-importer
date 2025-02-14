@@ -68,10 +68,23 @@
     <script>
       var t = window.TrelloPowerUp ? window.TrelloPowerUp.iframe() : null;
       
-      if (!t) {
-        console.warn('Trello Power-Up API ist nicht verfügbar. Karten können nicht erstellt werden.');
-        alert('Dieses Power-Up muss innerhalb von Trello verwendet werden.');
-      } else {
+      function isRunningInTrello() {
+        try {
+          return window.location !== window.parent.location;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      if (!isRunningInTrello()) {
+        document.body.innerHTML = `<div style="text-align: center; padding: 50px;">
+          <h2>Hinweis</h2>
+          <p>Dieses Power-Up muss innerhalb von Trello verwendet werden.</p>
+        </div>`;
+        throw new Error("Dieses Power-Up muss innerhalb von Trello verwendet werden.");
+      }
+      
+      if (t) {
         t.initialize({
           "board-buttons": function (t, opts) {
             return [
