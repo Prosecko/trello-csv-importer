@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>CSV Trello Importer v5</title>
+    <title>CSV Trello Importer v7</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -58,12 +58,13 @@
     </style>
   </head>
   <body>
-    <h1>CSV Importer v5</h1>
+    <h1>CSV Importer v7</h1>
     <div class="top-container">
       <input type="file" id="csvInput" accept=".csv">
       <button id="importBtn">Importiere CSV</button>
     </div>
     <div id="preview"></div>
+    <button id="createCardsBtn" style="display:none; margin-top: 10px;">Erstelle Trello-Karten</button>
     
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -90,20 +91,11 @@
                 }
               }
             ];
-          },
-          "card-buttons": function (t, opts) {
-            return [
-              {
-                icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
-                text: "CSV Import",
-                callback: function (t) {
-                  document.getElementById('csvInput').click();
-                }
-              }
-            ];
           }
         });
 
+        let parsedData = [];
+        
         document.getElementById('csvInput').addEventListener('change', function(event) {
           const file = event.target.files[0];
           if (!file) {
@@ -118,7 +110,8 @@
                 document.getElementById('preview').innerHTML = '<p>Die CSV-Datei ist leer oder fehlerhaft.</p>';
                 return;
               }
-              displayPreview(results.data);
+              parsedData = results.data;
+              displayPreview(parsedData);
             },
             error: function(err) {
               console.error('CSV Parsing Error:', err);
@@ -126,23 +119,50 @@
             }
           });
         });
-      });
-
-      function displayPreview(dataArray) {
-        let previewDiv = document.getElementById('preview');
-        previewDiv.innerHTML = '<h3>Vorschau der zu erstellenden Karten:</h3>';
-        let previewList = '<ul>';
         
-        dataArray.forEach(item => {
-          previewList += `<li><strong>${item['Card Name'] || 'Kein Name'}</strong><br>
-            Beschreibung: ${item['Card Description'] || 'Keine Beschreibung'}<br>
-            Mitglieder: ${item['Members'] || 'Keine Mitglieder'}<br>
-            Labels: ${item['Labels'] || 'Keine Labels'}<br>
-          </li>`;
+        function displayPreview(dataArray) {
+          let previewDiv = document.getElementById('preview');
+          previewDiv.innerHTML = '<h3>Vorschau der zu erstellenden Karten:</h3>';
+          let previewList = '<ul>';
+          
+          dataArray.forEach(item => {
+            previewList += `<li><strong>${item['Card Name'] || 'Kein Name'}</strong><br>
+              Beschreibung: ${item['Card Description'] || 'Keine Beschreibung'}<br>
+              Mitglieder: ${item['Members'] || 'Keine Mitglieder'}<br>
+              Labels: ${item['Labels'] || 'Keine Labels'}<br>
+              Fälligkeitsdatum: ${item['Due Date'] || 'Kein Datum'}<br>
+              Checkliste: ${item['Checklist'] || 'Keine Checkliste'}<br>
+            </li>`;
+          });
+          previewList += '</ul>';
+          previewDiv.innerHTML += previewList;
+          
+          document.getElementById('createCardsBtn').style.display = 'block';
+        }
+
+        document.getElementById('createCardsBtn').addEventListener('click', function() {
+          parsedData.forEach(item => {
+            t.card.create({
+              name: item['Card Name'] || 'Unbenannte Karte',
+              desc: item['Card Description'] || '',
+              due: item['Due Date'] || null,
+              labels: item['Labels'] ? item['Labels'].split(',') : [],
+              members: item['Members'] ? item['Members'].split(',') : []
+            }).then(card => {
+              if (item['Checklist']) {
+                t.card.checklist.create({
+                  card: card.id,
+                  name: item['Checklist']
+                }).then(checklist => {
+                  console.log(`Checkliste erstellt: ${item['Checklist']} für Karte ${card.name}`);
+                });
+              }
+            }).catch(err => {
+              console.error('Fehler beim Erstellen der Karte:', err);
+            });
+          });
         });
-        previewList += '</ul>';
-        previewDiv.innerHTML += previewList;
-      }
+      });
     </script>
   </body>
 </html>
