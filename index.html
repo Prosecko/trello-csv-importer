@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>CSV Trello Importer</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://trello.github.io/power-up-client/TrelloPowerUp.min.js"></script>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
       body {
@@ -66,27 +66,21 @@
     <div id="preview"></div>
     
     <script>
-      function isRunningInTrello() {
-        try {
-          return window.self !== window.top;
-        } catch (e) {
-          return true;
-        }
-      }
+      var t = window.TrelloPowerUp ? window.TrelloPowerUp.iframe() : null;
       
-      if (!isRunningInTrello()) {
+      if (!t) {
+        console.error("Trello API konnte nicht geladen werden. Ist das Power-Up korrekt registriert?");
         document.body.innerHTML = `<div style="text-align: center; padding: 50px;">
-          <h2>Hinweis</h2>
+          <h2>Fehler</h2>
           <p>Dieses Power-Up muss innerhalb von Trello verwendet werden.</p>
         </div>`;
         throw new Error("Power-Up nicht in Trello geladen.");
       }
       
-      var t = window.TrelloPowerUp ? window.TrelloPowerUp.iframe() : null;
-      if (t) {
-        console.log("Trello API detected, initializing Power-Up");
+      console.log("Trello API erkannt, initialisiere Power-Up");
+      if (typeof t.initialize === "function") {
         t.initialize({
-          "connectors": ["https://trello.com", "https://prosecko.github.io"],
+          "connectors": ["https://trello.com", "https://famous-tartufo-10f190.netlify.app"],
           "board-buttons": function (t, opts) {
             return [
               {
@@ -111,7 +105,7 @@
           }
         });
       } else {
-        console.error("Trello API konnte nicht geladen werden. Ist das Power-Up korrekt registriert?");
+        console.error("t.initialize is not a function. Check if TrelloPowerUp API is loaded correctly.");
       }
 
       document.getElementById('csvInput').addEventListener('change', function(event) {
@@ -136,44 +130,19 @@
           }
         });
       });
-      
+
       function displayPreview(dataArray) {
         let previewDiv = document.getElementById('preview');
         previewDiv.innerHTML = '<h3>Vorschau der zu erstellenden Karten:</h3>';
         let previewList = '<ul>';
-        let currentCard = null;
-        let cardChecklists = {};
-
+        
         dataArray.forEach(item => {
-          if (item['Card Name']) {
-            currentCard = item['Card Name'];
-            cardChecklists[currentCard] = {
-              description: item['Card Description'] || 'Keine Beschreibung',
-              members: item['Members'] || 'Keine Mitglieder',
-              labels: item['Labels'] || 'Keine Labels',
-              checklist: item['Checklist'] || 'Keine Checkliste',
-              checklistItems: []
-            };
-          } else if (currentCard && item['Checklist item']) {
-            cardChecklists[currentCard].checklistItems.push(item['Checklist item']);
-          }
+          previewList += `<li><strong>${item['Card Name'] || 'Kein Name'}</strong><br>
+            Beschreibung: ${item['Card Description'] || 'Keine Beschreibung'}<br>
+            Mitglieder: ${item['Members'] || 'Keine Mitglieder'}<br>
+            Labels: ${item['Labels'] || 'Keine Labels'}<br>
+          </li>`;
         });
-
-        for (const [cardName, cardData] of Object.entries(cardChecklists)) {
-          previewList += `<li>
-            <strong>${cardName}</strong> - ${cardData.description}
-            <br><strong>Mitglieder:</strong> ${cardData.members}
-            <br><strong>Labels:</strong> ${cardData.labels}
-            <br><strong>Checkliste:</strong> ${cardData.checklist}
-            <ul>`;
-          
-          cardData.checklistItems.forEach(item => {
-            previewList += `<li>${item}</li>`;
-          });
-          
-          previewList += `</ul></li><br>`;
-        }
-
         previewList += '</ul>';
         previewDiv.innerHTML += previewList;
       }
