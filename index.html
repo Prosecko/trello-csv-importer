@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>CSV Trello Importer v9</title>
+    <title>CSV Trello Importer v10</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -58,7 +58,7 @@
     </style>
   </head>
   <body>
-    <h1>CSV Importer v9</h1>
+    <h1>CSV Importer v10</h1>
     <div class="top-container">
       <input type="file" id="csvInput" accept=".csv">
       <button id="importBtn">Importiere CSV</button>
@@ -76,29 +76,27 @@
           </div>`;
           return;
         }
-        
+
         var t = TrelloPowerUp.iframe();
         console.log("Trello API erkannt, initialisiere Power-Up");
-        
+
         document.getElementById('testCardBtn').addEventListener('click', function() {
-          t.board('id').then(function(board) {
-            return t.lists('all').then(function(lists) {
-              if (lists.length > 0) {
-                return t.card({
-                  idList: lists[0].id,
-                  name: "Testkarte",
-                  desc: "Dies ist eine Testkarte, um die API zu testen."
-                }).then(function(card) {
-                  console.log("Karte erfolgreich erstellt:", card);
-                }).catch(function(error) {
-                  console.error("Fehler beim Erstellen der Karte:", error);
-                });
-              } else {
-                console.warn("Keine Listen gefunden!");
-              }
-            });
+          t.lists('all').then(function(lists) {
+            if (lists.length > 0) {
+              return t.card('create', {
+                name: "Testkarte",
+                desc: "Dies ist eine Testkarte, um die API zu testen.",
+                idList: lists[0].id
+              }).then(function(card) {
+                console.log("Karte erfolgreich erstellt:", card);
+              }).catch(function(error) {
+                console.error("Fehler beim Erstellen der Karte:", error);
+              });
+            } else {
+              console.warn("Keine Listen gefunden!");
+            }
           }).catch(function(error) {
-            console.error("Fehler beim Abrufen des Boards oder der Listen:", error);
+            console.error("Fehler beim Abrufen der Listen:", error);
           });
         });
 
