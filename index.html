@@ -71,6 +71,31 @@
       if (!t) {
         console.warn('Trello Power-Up API ist nicht verfügbar. Karten können nicht erstellt werden.');
         alert('Dieses Power-Up muss innerhalb von Trello verwendet werden.');
+      } else {
+        t.initialize({
+          "board-buttons": function (t, opts) {
+            return [
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
+                text: "CSV Import",
+                callback: function (t) {
+                  document.getElementById('csvInput').click();
+                }
+              }
+            ];
+          },
+          "card-buttons": function (t, opts) {
+            return [
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
+                text: "CSV Import",
+                callback: function (t) {
+                  document.getElementById('csvInput').click();
+                }
+              }
+            ];
+          }
+        });
       }
 
       document.getElementById('csvInput').addEventListener('change', function(event) {
