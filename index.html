@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>CSV Trello Importer v4</title>
+    <title>CSV Trello Importer v5</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -58,7 +58,7 @@
     </style>
   </head>
   <body>
-    <h1>CSV Importer v4</h1>
+    <h1>CSV Importer v5</h1>
     <div class="top-container">
       <input type="file" id="csvInput" accept=".csv">
       <button id="importBtn">Importiere CSV</button>
@@ -66,62 +66,65 @@
     <div id="preview"></div>
     
     <script>
-      var t = window.TrelloPowerUp;
-      if (!t) {
-        console.error("Trello API konnte nicht geladen werden. Ist das Power-Up korrekt registriert?");
-        document.body.innerHTML = `<div style="text-align: center; padding: 50px;">
-          <h2>Fehler</h2>
-          <p>Dieses Power-Up muss innerhalb von Trello verwendet werden.</p>
-        </div>`;
-        throw new Error("Power-Up nicht in Trello geladen.");
-      }
-      
-      console.log("Trello API erkannt, initialisiere Power-Up");
-      t.initialize({
-        "board-buttons": function (t, opts) {
-          return [
-            {
-              icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
-              text: "CSV Import",
-              callback: function (t) {
-                document.getElementById('csvInput').click();
-              }
-            }
-          ];
-        },
-        "card-buttons": function (t, opts) {
-          return [
-            {
-              icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
-              text: "CSV Import",
-              callback: function (t) {
-                document.getElementById('csvInput').click();
-              }
-            }
-          ];
-        }
-      });
-      
-      document.getElementById('csvInput').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (!file) {
-          document.getElementById('preview').innerHTML = '';
+      document.addEventListener("DOMContentLoaded", function () {
+        if (!window.TrelloPowerUp) {
+          console.error("Trello API konnte nicht geladen werden. Ist das Power-Up korrekt registriert?");
+          document.body.innerHTML = `<div style="text-align: center; padding: 50px;">
+            <h2>Fehler</h2>
+            <p>Dieses Power-Up muss innerhalb von Trello verwendet werden.</p>
+          </div>`;
           return;
         }
-
-        Papa.parse(file, {
-          header: true,
-          complete: function(results) {
-            if (results.data.length === 0) {
-              document.getElementById('preview').innerHTML = '<p>Die CSV-Datei ist leer oder fehlerhaft.</p>';
-              return;
-            }
-            displayPreview(results.data);
+        
+        var t = TrelloPowerUp.iframe();
+        console.log("Trello API erkannt, initialisiere Power-Up");
+        
+        TrelloPowerUp.initialize({
+          "board-buttons": function (t, opts) {
+            return [
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
+                text: "CSV Import",
+                callback: function (t) {
+                  document.getElementById('csvInput').click();
+                }
+              }
+            ];
           },
-          error: function(err) {
-            console.error('CSV Parsing Error:', err);
-            document.getElementById('preview').innerHTML = '<p>Fehler beim Parsen der CSV-Datei.</p>';
+          "card-buttons": function (t, opts) {
+            return [
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
+                text: "CSV Import",
+                callback: function (t) {
+                  document.getElementById('csvInput').click();
+                }
+              }
+            ];
           }
+        });
+
+        document.getElementById('csvInput').addEventListener('change', function(event) {
+          const file = event.target.files[0];
+          if (!file) {
+            document.getElementById('preview').innerHTML = '';
+            return;
+          }
+
+          Papa.parse(file, {
+            header: true,
+            complete: function(results) {
+              if (results.data.length === 0) {
+                document.getElementById('preview').innerHTML = '<p>Die CSV-Datei ist leer oder fehlerhaft.</p>';
+                return;
+              }
+              displayPreview(results.data);
+            },
+            error: function(err) {
+              console.error('CSV Parsing Error:', err);
+              document.getElementById('preview').innerHTML = '<p>Fehler beim Parsen der CSV-Datei.</p>';
+            }
+          });
         });
       });
 
