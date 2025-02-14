@@ -66,15 +66,14 @@
     <div id="preview"></div>
     
     <script>
-      function isRunningInTrello() {
-        try {
-          return window.self !== window.top;
-        } catch (e) {
-          return true;
-        }
-      }
+      var t = window.TrelloPowerUp ? window.TrelloPowerUp.iframe() : null;
       
+      function isRunningInTrello() {
+        return typeof window.TrelloPowerUp !== "undefined";
+      }
+
       if (!isRunningInTrello()) {
+        console.warn("Dieses Power-Up muss innerhalb von Trello verwendet werden.");
         document.body.innerHTML = `<div style="text-align: center; padding: 50px;">
           <h2>Hinweis</h2>
           <p>Dieses Power-Up muss innerhalb von Trello verwendet werden.</p>
@@ -82,28 +81,29 @@
         throw new Error("Power-Up nicht in Trello geladen.");
       }
       
-      var t = window.TrelloPowerUp ? window.TrelloPowerUp.iframe() : null;
       if (t) {
-        console.log("Trello API detected, initializing Power-Up");
         t.initialize({
-          "connectors": ["https://trello.com", "https://prosecko.github.io"],
           "board-buttons": function (t, opts) {
+            console.log("Board button initialized");
             return [
               {
                 icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
                 text: "CSV Import",
                 callback: function (t) {
+                  console.log("Board button clicked");
                   document.getElementById('csvInput').click();
                 }
               }
             ];
           },
           "card-buttons": function (t, opts) {
+            console.log("Card button initialized");
             return [
               {
                 icon: "https://cdn-icons-png.flaticon.com/512/2919/2919592.png",
                 text: "CSV Import",
                 callback: function (t) {
+                  console.log("Card button clicked");
                   document.getElementById('csvInput').click();
                 }
               }
@@ -136,6 +136,53 @@
           }
         });
       });
+      
+      function displayPreview(dataArray) {
+        let previewDiv = document.getElementById('preview');
+        previewDiv.innerHTML = '<h3>Vorschau der zu erstellenden Karten:</h3>';
+        let previewList = '<ul>';
+        
+        let currentCard = null;
+        let cardChecklists = {};
+
+        dataArray.forEach(item => {
+          if (item['Card Name']) {
+            currentCard = item['Card Name'];
+            cardChecklists[currentCard] = {
+              description: item['Card Description'] || 'Keine Beschreibung',
+              members: item['Members'] || 'Keine Mitglieder',
+              labels: item['Labels'] || 'Keine Labels',
+              checklist: item['Checklist'] || 'Keine Checkliste',
+              checklistItems: []
+            };
+          } else if (currentCard && item['Checklist item']) {
+            cardChecklists[currentCard].checklistItems.push({
+              name: item['Checklist item'],
+              due: item['Checklist item due'] || 'Kein Fälligkeitsdatum',
+              member: item['Checklist item member'] || 'Kein Mitglied'
+            });
+          }
+        });
+        
+        for (const [cardName, cardData] of Object.entries(cardChecklists)) {
+          previewList += `<li>
+            <strong>${cardName}</strong> - ${cardData.description}
+            <br><strong>Mitglieder:</strong> ${cardData.members}
+            <br><strong>Labels:</strong> ${cardData.labels}
+            <br><strong>Checkliste:</strong> ${cardData.checklist || 'Keine Checkliste'}
+            <br><strong>Checklisten-Einträge:</strong>
+            <ul>`;
+          
+          cardData.checklistItems.forEach(item => {
+            previewList += `<li>${item.name} (Fällig: ${item.due}, Mitglied: ${item.member})</li>`;
+          });
+          
+          previewList += `</ul></li><br>`;
+        }
+        
+        previewList += '</ul>';
+        previewDiv.innerHTML += previewList;
+      }
     </script>
   </body>
 </html>
