@@ -86,6 +86,7 @@
       if (t) {
         console.log("Trello API detected, initializing Power-Up");
         t.initialize({
+          "connectors": ["https://trello.com", "https://prosecko.github.io"],
           "board-buttons": function (t, opts) {
             return [
               {
@@ -135,53 +136,6 @@
           }
         });
       });
-      
-      function displayPreview(dataArray) {
-        let previewDiv = document.getElementById('preview');
-        previewDiv.innerHTML = '<h3>Vorschau der zu erstellenden Karten:</h3>';
-        let previewList = '<ul>';
-        
-        let currentCard = null;
-        let cardChecklists = {};
-
-        dataArray.forEach(item => {
-          if (item['Card Name']) {
-            currentCard = item['Card Name'];
-            cardChecklists[currentCard] = {
-              description: item['Card Description'] || 'Keine Beschreibung',
-              members: item['Members'] || 'Keine Mitglieder',
-              labels: item['Labels'] || 'Keine Labels',
-              checklist: item['Checklist'] || 'Keine Checkliste',
-              checklistItems: []
-            };
-          } else if (currentCard && item['Checklist item']) {
-            cardChecklists[currentCard].checklistItems.push({
-              name: item['Checklist item'],
-              due: item['Checklist item due'] || 'Kein Fälligkeitsdatum',
-              member: item['Checklist item member'] || 'Kein Mitglied'
-            });
-          }
-        });
-        
-        for (const [cardName, cardData] of Object.entries(cardChecklists)) {
-          previewList += `<li>
-            <strong>${cardName}</strong> - ${cardData.description}
-            <br><strong>Mitglieder:</strong> ${cardData.members}
-            <br><strong>Labels:</strong> ${cardData.labels}
-            <br><strong>Checkliste:</strong> ${cardData.checklist || 'Keine Checkliste'}
-            <br><strong>Checklisten-Einträge:</strong>
-            <ul>`;
-          
-          cardData.checklistItems.forEach(item => {
-            previewList += `<li>${item.name} (Fällig: ${item.due}, Mitglied: ${item.member})</li>`;
-          });
-          
-          previewList += `</ul></li><br>`;
-        }
-        
-        previewList += '</ul>';
-        previewDiv.innerHTML += previewList;
-      }
     </script>
   </body>
 </html>
