@@ -95,7 +95,7 @@
           }
         });
       });
-
+      
       function displayPreview(dataArray) {
         let previewDiv = document.getElementById('preview');
         previewDiv.innerHTML = '<h3>Vorschau der zu erstellenden Karten:</h3>';
@@ -103,7 +103,7 @@
         
         let currentCard = null;
         let cardChecklists = {};
-        
+
         dataArray.forEach(item => {
           if (item['Card Name']) {
             currentCard = item['Card Name'];
